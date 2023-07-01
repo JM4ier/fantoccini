@@ -604,13 +604,16 @@ where
         // We're going to need a channel for sending requests to the WebDriver host
         let (tx, rx) = mpsc::unbounded_channel();
 
+        // use existing session if the `sessionId` key is set in the capabilities
+        let session = cap.get("sessionId").and_then(serde_json::Value::as_str).map(ToString::to_string);
+
         // Set up our WebDriver session.
         tokio::spawn(Session {
             rx,
             ongoing: Ongoing::None,
             client,
             wdb,
-            session: None,
+            session,
             is_legacy: false,
             ua: None,
             persist: false,
