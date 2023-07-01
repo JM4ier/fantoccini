@@ -606,6 +606,7 @@ where
 
         // use existing session if the `sessionId` key is set in the capabilities
         let session = cap.get("sessionId").and_then(serde_json::Value::as_str).map(ToString::to_string);
+        cap.remove("sessionId");
 
         // Set up our WebDriver session.
         tokio::spawn(Session {
