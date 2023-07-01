@@ -173,6 +173,7 @@ where
 {
     capabilities: Option<Capabilities>,
     connector: C,
+    sid: Option<String>,
 }
 
 #[cfg(feature = "rustls-tls")]
@@ -206,6 +207,7 @@ where
     pub fn new(connector: C) -> Self {
         Self {
             capabilities: None,
+            sid: None,
             connector,
         }
     }
@@ -241,10 +243,16 @@ where
         self
     }
 
+    /// Connects with existing session
+    pub fn with_existing_session(&mut self, sid: String) -> &mut Self {
+        self.sid = Some(sid);
+        self
+    }
+
     /// Connect to the WebDriver session at the `webdriver` URL.
     pub async fn connect(&self, webdriver: &str) -> Result<Client, error::NewSessionError> {
         if let Some(ref cap) = self.capabilities {
-            Client::with_capabilities_and_connector(webdriver, cap, self.connector.clone()).await
+            Client::with_capabilities_and_connector(webdriver, cap, self.sid.clone(), self.connector.clone()).await
         } else {
             Client::new_with_connector(webdriver, self.connector.clone()).await
         }

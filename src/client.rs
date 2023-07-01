@@ -66,6 +66,7 @@ impl Client {
         Self::with_capabilities_and_connector(
             webdriver,
             &webdriver::capabilities::Capabilities::new(),
+            None,
             connector,
         )
         .await
@@ -82,12 +83,13 @@ impl Client {
     pub async fn with_capabilities_and_connector<C>(
         webdriver: &str,
         cap: &Capabilities,
+        sid: Option<String>,
         connector: C,
     ) -> Result<Self, error::NewSessionError>
     where
         C: connect::Connect + Unpin + 'static + Clone + Send + Sync,
     {
-        Session::with_capabilities_and_connector(webdriver, cap, connector).await
+        Session::with_capabilities_and_connector_and_sid(webdriver, cap, connector, sid).await
     }
 
     /// Get the unique session ID assigned by the WebDriver server to this client.

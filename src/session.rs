@@ -594,6 +594,15 @@ where
         cap: &webdriver::capabilities::Capabilities,
         connector: C,
     ) -> Result<Client, error::NewSessionError> {
+        Self::with_capabilities_and_connector_and_sid(webdriver, cap, connector, None).await
+    }
+
+    pub(crate) async fn with_capabilities_and_connector_and_sid(
+        webdriver: &str,
+        cap: &webdriver::capabilities::Capabilities,
+        connector: C,
+        sid: Option<String>,
+    ) -> Result<Client, error::NewSessionError> {
         // Where is the WebDriver server?
         let wdb = webdriver.parse::<url::Url>();
         let wdb = wdb.map_err(error::NewSessionError::BadWebdriverUrl)?;
@@ -604,17 +613,13 @@ where
         // We're going to need a channel for sending requests to the WebDriver host
         let (tx, rx) = mpsc::unbounded_channel();
 
-        // use existing session if the `sessionId` key is set in the capabilities
-        let session = cap.get("sessionId").and_then(serde_json::Value::as_str).map(ToString::to_string);
-        cap.remove("sessionId");
-
         // Set up our WebDriver session.
         tokio::spawn(Session {
             rx,
             ongoing: Ongoing::None,
             client,
             wdb,
-            session,
+            session: sid,
             is_legacy: false,
             ua: None,
             persist: false,
